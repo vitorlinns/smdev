@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>smdev</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>smdev</h1>
+      <button id="clear-all" class="danger">Limpar tudo</button>
+    </header>
+
+    <main class="layout">
+      <aside class="message-list">
+        <ul id="message-list"></ul>
+        <p id="empty-state" class="empty-state" hidden>
+          Nenhum email ainda. Envie um SMTP pra <code>localhost:1025</code>.
+        </p>
+      </aside>
+
+      <section class="message-detail" id="message-detail">
+        <p class="placeholder">Selecione um email na lista à esquerda.</p>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

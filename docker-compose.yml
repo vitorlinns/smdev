@@ -1,0 +1,16 @@
+services:
+  smdev:
+    build: .
+    container_name: smdev
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+    environment:
+      SMTP_PORT: 1025
+      HTTP_PORT: 8025
+    networks:
+      - mailnet
+
+networks:
+  mailnet:
+    external: true
