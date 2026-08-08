@@ -108,4 +108,4 @@ Para integrar o smdev em outro projeto (variáveis de ambiente, exemplos de conf
 
 ## Licença
 
-Distribuído sob a licença ISC. Veja [LICENSE](./LICENSE).
+Distribuído sob a licença MIT. Veja [LICENSE](./LICENSE).
