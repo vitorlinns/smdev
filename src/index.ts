@@ -1,5 +1,5 @@
-const { createSmtpServer } = require('./smtp/server');
-const { createApiApp } = require('./api/app');
+import { createSmtpServer } from './smtp/server';
+import { createApiApp } from './api/app';
 
 const SMTP_PORT = Number(process.env.SMTP_PORT) || 1025;
 const HTTP_PORT = Number(process.env.HTTP_PORT) || 8025;

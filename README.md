@@ -49,10 +49,15 @@ Como a rede é externa e compartilhada, não importa em qual `docker-compose.yml
 
 ## Rodando local sem Docker
 
+O projeto é escrito em TypeScript (backend e frontend). Compile antes de rodar:
+
 ```bash
 npm install
+npm run build
 npm start
 ```
+
+`npm run build` compila o backend com `tsc` e empacota o frontend com `esbuild` em `dist/`; `npm start` roda `dist/index.js`. Pra só checar os tipos sem gerar build, use `npm run typecheck`.
 
 Portas padrão: `SMTP_PORT=1025`, `HTTP_PORT=8025` (dá pra sobrescrever via variável de ambiente).
 

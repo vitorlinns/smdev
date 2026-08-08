@@ -1,3 +1,14 @@
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+COPY tsconfig.json tsconfig.web.json ./
+COPY src ./src
+RUN npm run build
+
 FROM node:22-alpine
 
 WORKDIR /app
@@ -5,8 +16,9 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev
 
-COPY src ./src
+COPY --from=builder /app/dist ./dist
+COPY public ./public
 
 EXPOSE 1025 8025
 
-CMD ["node", "src/index.js"]
+CMD ["node", "dist/index.js"]
