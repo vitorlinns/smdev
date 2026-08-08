@@ -106,6 +106,36 @@ body {
   background: var(--surface);
 }
 
+.list-filters {
+  display: flex;
+  gap: 2px;
+  padding: 10px 10px 0;
+}
+
+.filter-btn {
+  flex: 1;
+  background: none;
+  border: 1px solid transparent;
+  padding: 7px 10px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.filter-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.filter-btn.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
 #message-list {
   list-style: none;
   margin: 0;
@@ -163,14 +193,35 @@ body {
   gap: 10px;
 }
 
+.subject-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+}
+
+.unread-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
 .message-item .subject {
-  font-weight: 600;
+  font-weight: 500;
   font-size: 15px;
   line-height: 1.4;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.message-item.unread .subject {
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .message-item .date {
@@ -252,7 +303,8 @@ body {
 }
 
 .empty-state p {
-  font-size: 13px;
+  font-size: 15px;
+  font-weight: 500;
   line-height: 1.5;
   margin: 0;
 }
@@ -360,6 +412,11 @@ body {
   line-height: 1.65;
   color: var(--text-primary);
   overflow-y: auto;
+}
+
+.delete-message-btn {
+  align-self: flex-start;
+  margin-top: 14px;
 }
 
 .otp-highlight {

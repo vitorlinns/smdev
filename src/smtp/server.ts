@@ -69,6 +69,7 @@ export function createSmtpServer(): SMTPServer {
             ),
             otp: extractOtp(bodyText),
             preview: makePreview(bodyText),
+            read: false,
           };
           inbox.add(message);
           callback();

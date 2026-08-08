@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { createSmtpServer } from './smtp/server';
 import { createApiApp } from './api/app';
 

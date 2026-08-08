@@ -3,14 +3,20 @@ import type { EmailMessage, MessageSummary } from '../types';
 const POLL_INTERVAL_MS = 3000;
 const PAGE_SIZE = 20;
 
+type FilterMode = 'all' | 'unread';
+
 let selectedId: string | null = null;
 let lastListSignature = '';
 let visibleCount = PAGE_SIZE;
+let filterMode: FilterMode = 'all';
+let currentMessages: MessageSummary[] = [];
 
 const listEl = document.getElementById('message-list') as HTMLUListElement;
 const emptyStateEl = document.getElementById('empty-state') as HTMLElement;
+const emptyStateTextEl = emptyStateEl.querySelector('p') as HTMLElement;
 const detailEl = document.getElementById('message-detail') as HTMLElement;
 const clearAllBtn = document.getElementById('clear-all') as HTMLButtonElement;
+const filterButtons = document.querySelectorAll<HTMLButtonElement>('.filter-btn');
 
 function formatDate(iso: string): string {
   try {
@@ -76,21 +82,34 @@ function escapeHtml(text: string): string {
 async function fetchList(): Promise<void> {
   const res = await fetch('/api/messages');
   const messages: MessageSummary[] = await res.json();
-  const signature = JSON.stringify(messages.map((m) => m.id));
+  const signature = JSON.stringify(messages.map((m) => `${m.id}:${m.read}`));
   if (signature === lastListSignature) return;
   lastListSignature = signature;
   renderList(messages);
 }
 
-function renderList(messages: MessageSummary[]): void {
-  listEl.innerHTML = '';
-  emptyStateEl.hidden = messages.length > 0;
+function updateEmptyState(filteredCount: number, totalCount: number): void {
+  emptyStateEl.hidden = filteredCount > 0;
+  if (filteredCount > 0) return;
+  emptyStateTextEl.innerHTML =
+    totalCount === 0
+      ? 'Nenhum email ainda.<br />Envie um SMTP pra <code>localhost:1025</code>.'
+      : 'Nenhum email não lido.';
+}
 
-  const visibleMessages = messages.slice(0, visibleCount);
+function renderList(messages: MessageSummary[]): void {
+  currentMessages = messages;
+  const filtered = filterMode === 'unread' ? messages.filter((m) => !m.read) : messages;
+
+  listEl.innerHTML = '';
+  updateEmptyState(filtered.length, messages.length);
+
+  const visibleMessages = filtered.slice(0, visibleCount);
 
   for (const msg of visibleMessages) {
     const li = document.createElement('li');
-    li.className = 'message-item' + (msg.id === selectedId ? ' selected' : '');
+    li.className =
+      'message-item' + (msg.id === selectedId ? ' selected' : '') + (!msg.read ? ' unread' : '');
     li.dataset.id = msg.id;
 
     const avatar = document.createElement('div');
@@ -104,15 +123,25 @@ function renderList(messages: MessageSummary[]): void {
     const top = document.createElement('div');
     top.className = 'item-top';
 
+    const subjectWrap = document.createElement('span');
+    subjectWrap.className = 'subject-wrap';
+
+    if (!msg.read) {
+      const dot = document.createElement('span');
+      dot.className = 'unread-dot';
+      subjectWrap.appendChild(dot);
+    }
+
     const subject = document.createElement('span');
     subject.className = 'subject';
     subject.textContent = msg.subject;
+    subjectWrap.appendChild(subject);
 
     const date = document.createElement('span');
     date.className = 'date';
     date.textContent = formatListDate(msg.date);
 
-    top.append(subject, date);
+    top.append(subjectWrap, date);
 
     const meta = document.createElement('div');
     meta.className = 'meta';
@@ -142,13 +171,13 @@ function renderList(messages: MessageSummary[]): void {
     listEl.appendChild(li);
   }
 
-  if (messages.length > visibleMessages.length) {
+  if (filtered.length > visibleMessages.length) {
     const loadMoreLi = document.createElement('li');
     loadMoreLi.className = 'load-more';
 
     const loadMoreBtn = document.createElement('button');
     loadMoreBtn.className = 'load-more-btn';
-    loadMoreBtn.textContent = `Exibir mais (${messages.length - visibleMessages.length})`;
+    loadMoreBtn.textContent = `Exibir mais (${filtered.length - visibleMessages.length})`;
     loadMoreBtn.addEventListener('click', () => {
       visibleCount += PAGE_SIZE;
       renderList(messages);
@@ -172,6 +201,12 @@ async function selectMessage(id: string): Promise<void> {
   }
   const msg: EmailMessage = await res.json();
   renderDetail(msg);
+
+  const localMsg = currentMessages.find((m) => m.id === id);
+  if (localMsg && !localMsg.read) {
+    localMsg.read = true;
+    renderList(currentMessages);
+  }
 }
 
 function renderDetail(msg: EmailMessage): void {
@@ -206,14 +241,7 @@ function renderDetail(msg: EmailMessage): void {
   meta.append(fromRow, toRow, dateRow);
   headerText.append(subject, meta);
 
-  const deleteBtn = document.createElement('button');
-  deleteBtn.className = 'danger small';
-  deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" fill="currentColor">
-    <path d="M17 6H22V8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8H2V6H7V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V6ZM18 8H6V20H18V8ZM9 11H11V17H9V11ZM13 11H15V17H13V11ZM9 4V6H15V4H9Z" />
-  </svg>Excluir`;
-  deleteBtn.addEventListener('click', () => deleteMessage(msg.id));
-
-  header.append(avatar, headerText, deleteBtn);
+  header.append(avatar, headerText);
   detailEl.appendChild(header);
 
   const bodyLabel = document.createElement('div');
@@ -252,13 +280,27 @@ function renderDetail(msg: EmailMessage): void {
       });
     }
   }
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'danger delete-message-btn';
+  deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="currentColor">
+    <path d="M17 6H22V8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8H2V6H7V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V6ZM18 8H6V20H18V8ZM9 11H11V17H9V11ZM13 11H15V17H13V11ZM9 4V6H15V4H9Z" />
+  </svg>Excluir`;
+  deleteBtn.addEventListener('click', () => deleteMessage(msg.id));
+
+  detailEl.appendChild(deleteBtn);
+}
+
+function closeDetail(): void {
+  selectedId = null;
+  document.querySelectorAll('.message-item.selected').forEach((el) => el.classList.remove('selected'));
+  renderPlaceholder('Selecione um email na lista à esquerda.');
 }
 
 async function deleteMessage(id: string): Promise<void> {
   await fetch(`/api/messages/${id}`, { method: 'DELETE' });
   if (selectedId === id) {
-    selectedId = null;
-    renderPlaceholder('Selecione um email na lista à esquerda.');
+    closeDetail();
   }
   lastListSignature = '';
   fetchList();
@@ -266,11 +308,26 @@ async function deleteMessage(id: string): Promise<void> {
 
 clearAllBtn.addEventListener('click', async () => {
   await fetch('/api/messages', { method: 'DELETE' });
-  selectedId = null;
-  lastListSignature = '';
   visibleCount = PAGE_SIZE;
-  renderPlaceholder('Selecione um email na lista à esquerda.');
+  closeDetail();
   fetchList();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && selectedId !== null) {
+    closeDetail();
+  }
+});
+
+filterButtons.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const mode: FilterMode = btn.dataset.filter === 'unread' ? 'unread' : 'all';
+    if (mode === filterMode) return;
+    filterMode = mode;
+    visibleCount = PAGE_SIZE;
+    filterButtons.forEach((b) => b.classList.toggle('active', b === btn));
+    renderList(currentMessages);
+  });
 });
 
 fetchList();

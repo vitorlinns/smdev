@@ -21,6 +21,10 @@
 
     <main class="layout">
       <aside class="message-list">
+        <div class="list-filters">
+          <button class="filter-btn active" data-filter="all">Todos</button>
+          <button class="filter-btn" data-filter="unread">Não lidos</button>
+        </div>
         <ul id="message-list"></ul>
         <div id="empty-state" class="empty-state" hidden>
           <svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true">

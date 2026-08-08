@@ -13,18 +13,26 @@ function add(message: EmailMessage): EmailMessage {
 }
 
 function list(): MessageSummary[] {
-  return messages.map(({ id, from, to, subject, date, preview }) => ({
+  return messages.map(({ id, from, to, subject, date, preview, read }) => ({
     id,
     from,
     to,
     subject,
     date,
     preview,
+    read,
   }));
 }
 
 function get(id: string): EmailMessage | null {
   return messages.find((m) => m.id === id) || null;
+}
+
+function markRead(id: string): boolean {
+  const message = messages.find((m) => m.id === id);
+  if (!message) return false;
+  message.read = true;
+  return true;
 }
 
 function remove(id: string): boolean {
@@ -38,4 +46,4 @@ function clear(): void {
   messages = [];
 }
 
-export default { add, list, get, remove, clear };
+export default { add, list, get, remove, clear, markRead };
