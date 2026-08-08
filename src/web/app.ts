@@ -17,6 +17,9 @@ const emptyStateTextEl = emptyStateEl.querySelector('p') as HTMLElement;
 const detailEl = document.getElementById('message-detail') as HTMLElement;
 const clearAllBtn = document.getElementById('clear-all') as HTMLButtonElement;
 const filterButtons = document.querySelectorAll<HTMLButtonElement>('.filter-btn');
+const instructionsBtn = document.getElementById('instructions-btn') as HTMLButtonElement;
+const instructionsBackdrop = document.getElementById('instructions-backdrop') as HTMLElement;
+const instructionsClose = document.getElementById('instructions-close') as HTMLButtonElement;
 
 function formatDate(iso: string): string {
   try {
@@ -313,8 +316,25 @@ clearAllBtn.addEventListener('click', async () => {
   fetchList();
 });
 
+function openInstructions(): void {
+  instructionsBackdrop.hidden = false;
+}
+
+function closeInstructions(): void {
+  instructionsBackdrop.hidden = true;
+}
+
+instructionsBtn.addEventListener('click', openInstructions);
+instructionsClose.addEventListener('click', closeInstructions);
+instructionsBackdrop.addEventListener('click', (e) => {
+  if (e.target === instructionsBackdrop) closeInstructions();
+});
+
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && selectedId !== null) {
+  if (e.key !== 'Escape') return;
+  if (!instructionsBackdrop.hidden) {
+    closeInstructions();
+  } else if (selectedId !== null) {
     closeDetail();
   }
 });

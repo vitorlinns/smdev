@@ -10,6 +10,12 @@
     <header class="topbar">
       <div class="brand">
         <img class="brand-logo" src="/brand/logo-smdev.png" alt="smdev" />
+        <button id="instructions-btn" class="ghost" aria-haspopup="dialog" aria-controls="instructions-modal">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="currentColor">
+            <path d="M13 21V23H11V21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3H9C10.1947 3 11.2671 3.52375 12 4.35418C12.7329 3.52375 13.8053 3 15 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H13ZM20 19V5H15C13.8954 5 13 5.89543 13 7V19H20ZM11 19V7C11 5.89543 10.1046 5 9 5H4V19H11Z" />
+          </svg>
+          Como usar
+        </button>
       </div>
       <button id="clear-all" class="danger">
         <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="currentColor">
@@ -18,6 +24,55 @@
         Limpar tudo
       </button>
     </header>
+
+    <div id="instructions-backdrop" class="modal-backdrop" hidden>
+      <div id="instructions-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="instructions-title">
+        <div class="modal-header">
+          <h2 id="instructions-title">Como integrar no seu projeto</h2>
+          <button id="instructions-close" class="icon-btn" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
+              <path d="M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <section class="modal-section">
+            <h3>1. Aponte o client SMTP</h3>
+            <p>Configure o envio de email da sua aplicação para este servidor, sem usuário, senha ou TLS:</p>
+            <pre class="code-block">SMTP_HOST=localhost
+SMTP_PORT=1025</pre>
+            <p>Exemplo com Nodemailer:</p>
+            <pre class="code-block">const transporter = nodemailer.createTransport({
+  host: 'localhost',
+  port: 1025,
+  secure: false,
+});</pre>
+          </section>
+
+          <section class="modal-section">
+            <h3>2. Se sua aplicação também roda em Docker</h3>
+            <p><code>localhost</code> não funciona de container para container. Coloque os dois serviços na mesma rede externa <code>mailnet</code> e aponte para o nome do serviço, não para <code>localhost</code>:</p>
+            <pre class="code-block">environment:
+  SMTP_HOST: smdev
+  SMTP_PORT: 1025
+networks:
+  - mailnet</pre>
+          </section>
+
+          <section class="modal-section">
+            <h3>3. Leia os emails pela API (opcional)</h3>
+            <p>Útil em testes automatizados que precisam pegar um código de verificação sem abrir esta tela. CORS liberado — funciona direto do navegador ou do lado do servidor.</p>
+            <pre class="code-block">GET http://localhost:8025/api/messages/latest?to=&lt;email&gt;</pre>
+            <p>Retorna a mensagem mais recente enviada a esse destinatário, incluindo o campo <code>otp</code> quando um código é detectado.</p>
+          </section>
+
+          <p class="modal-footer-note">
+            Referência completa da API e mais exemplos (Python, PHP) em <code>docs/api-reference.md</code> e <code>docs/integration.md</code>, no repositório do smdev.
+          </p>
+        </div>
+      </div>
+    </div>
 
     <main class="layout">
       <aside class="message-list">
